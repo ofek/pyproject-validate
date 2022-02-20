@@ -1,0 +1,84 @@
+[build-system]
+requires = ["hatchling>=0.14.0", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pyproject-validate"
+description = "Validate and format pyproject.toml files"
+readme = "README.md"
+requires-python = ">=3.7"
+license = "MIT"
+keywords = []
+authors = [
+    { name = "Ofek Lev", email = "oss@ofek.dev" },
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+]
+dependencies = [
+    "packaging",
+    "pydantic",
+    "tomli",
+    "tomli-w",
+]
+dynamic = [
+    "version",
+]
+
+[project.urls]
+Documentation = "https://github.com/ofek/pyproject-validate#readme"
+Issues = "https://github.com/ofek/pyproject-validate/issues"
+Source = "https://github.com/ofek/pyproject-validate"
+
+[project.scripts]
+pyproject-validate = "pyproject_validate.cli:main"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/pyproject_validate/_version.py"
+
+[tool.mypy]
+disallow_untyped_defs = false
+follow_imports = "normal"
+ignore_missing_imports = true
+pretty = true
+show_column_numbers = true
+warn_no_return = false
+warn_unused_ignores = true
+
+[tool.black]
+include = '\.pyi?$'
+line-length = 120
+target-version = ["py37"]
+
+[tool.isort]
+default_section = "THIRDPARTY"
+force_grid_wrap = 0
+include_trailing_comma = true
+known_first_party = ["pyproject_validate"]
+line_length = 120
+multi_line_output = 3
+use_parentheses = true
+
+[tool.coverage.run]
+branch = true
+parallel = true
+omit = [
+  "src/pyproject_validate/__main__.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "no cov",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]

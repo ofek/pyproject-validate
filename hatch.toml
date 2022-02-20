@@ -1,0 +1,41 @@
+[envs.default]
+dependencies = [
+    "coverage[toml]>=6.2",
+    "pytest",
+    "pytest-cov",
+]
+[envs.default.scripts]
+cov = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=src/pyproject_validate --cov=tests"
+no-cov = "cov --no-cov"
+
+[envs.test]
+type = "container"
+
+[[envs.test.matrix]]
+python = ["37", "38", "39", "310"]
+
+[envs.lint]
+skip-install = true
+dependencies = [
+    "flake8>=4.0.1",
+    "flake8-bugbear>=22.1.11",
+    "black>=22.1.0",
+    "isort>=5.10.1",
+    "mypy>=0.931",
+]
+[envs.lint.scripts]
+typing = "mypy --install-types --non-interactive src/pyproject_validate tests"
+style = [
+    "flake8 .",
+    "black --check --diff .",
+    "isort --check-only --diff .",
+]
+fmt = [
+    "isort .",
+    "black .",
+    "style",
+]
+all = [
+    "style",
+    "typing",
+]
