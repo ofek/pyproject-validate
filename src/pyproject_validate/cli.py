@@ -43,6 +43,8 @@ def main():
                 validator.fix(data)
             else:
                 unfixable_errors = True
+                if validator.exit_early:
+                    break
 
     if need_fixing and not unfixable_errors:
         handler.save(data)

@@ -78,7 +78,7 @@ error: should be foo-bar
 """
         )
 
-    def test_cannot_fix(self, project_file, invoke):
+    def test_fix(self, project_file, invoke):
         project_file.write(self.BEFORE)
 
         result = invoke("--fix")
@@ -86,3 +86,7 @@ error: should be foo-bar
         assert result.code == 0, result.output
         assert not result.output
         assert project_file.read() == self.AFTER
+
+        result = invoke()
+
+        assert result.code == 0, result.output

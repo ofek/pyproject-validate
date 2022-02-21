@@ -4,16 +4,20 @@ import re
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List
 
+from .utils import normalize_project_name
+
 
 class Validator(ABC):
     def __init__(self):
         self.fixable = True
+        self.exit_early = False
 
     @abstractmethod
     def validate(self, data: Dict[str, Any], errors: List[str], warnings: List[str]):
         """
         Validates the provided raw deserialized pyproject.toml `data`. If any errors cannot
-        be automatically fixed, set `self.fixable` to `False`.
+        be automatically fixed, set `self.fixable` to `False`. If any errors may interfere
+        with subsequent validation, set `self.exit_early` to `True`.
         """
 
     @abstractmethod
@@ -33,12 +37,14 @@ class SpecValidator(Validator):
             BuildSystemConfig(**data.get("build-system", {}))
         except Exception as e:
             self.fixable = False
+            self.exit_early = True
             errors.append(str(e))
 
         try:
             ProjectConfig(**data.get("project", {}))
         except Exception as e:
             self.fixable = False
+            self.exit_early = True
             errors.append(str(e))
 
     def fix(self, data):  # no cov
@@ -54,11 +60,7 @@ class NameValidator(Validator):
         self._name = ""
 
     def validate(self, data, errors, warnings):
-        name = data["project"].get("name")
-
-        # Previous error
-        if not isinstance(name, str):
-            return
+        name = data["project"]["name"]
 
         # https://www.python.org/dev/peps/pep-0508/#names
         if not re.search("^([A-Z0-9]|[A-Z0-9][A-Z0-9._-]*[A-Z0-9])$", name, re.IGNORECASE):
@@ -66,8 +68,7 @@ class NameValidator(Validator):
             errors.append("must only contain ASCII letters/digits, underscores, hyphens, and periods")
             return
 
-        # https://www.python.org/dev/peps/pep-0503/#normalized-names
-        self._name = re.sub(r"[-_.]+", "-", name).lower()
+        self._name = normalize_project_name(name)
 
         if name != self._name:
             errors.append(f"should be {self._name}")

@@ -225,8 +225,8 @@ build-backend = "hatchling.build"
 name = "foo"
 version = "0.0.1"
 dependencies = [
-    "foo",
     "bar",
+    "foo",
 ]
 """
         )
