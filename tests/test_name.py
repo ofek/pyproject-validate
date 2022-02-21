@@ -90,3 +90,4 @@ error: should be foo-bar
         result = invoke()
 
         assert result.code == 0, result.output
+        assert not result.output

@@ -77,6 +77,80 @@ class NameValidator(Validator):
         data["project"]["name"] = self._name
 
 
+class DependencyValidator(Validator):
+    def __init__(self):
+        super().__init__()
+
+        self._dependencies = []
+        self._optional_dependencies = {}
+
+    def validate(self, data, errors, warnings):
+        project_data = data["project"]
+
+        self._validate_dependencies(project_data, errors, warnings)
+        self._validate_optional_dependencies(project_data, errors, warnings)
+
+    def fix(self, data):
+        if self._dependencies:
+            data["project"]["dependencies"] = self._dependencies
+
+        if self._optional_dependencies:
+            data["project"]["optional-dependencies"] = self._optional_dependencies
+
+    def _validate_dependencies(self, project_data, errors, warnings):
+        dependencies = project_data.get("dependencies", [])
+
+        self._dependencies = self._validate_dependency_list(dependencies, errors, warnings)
+
+    def _validate_optional_dependencies(self, project_data, errors, warnings):
+        optional_dependencies = project_data.get("optional-dependencies", {})
+
+        normalized = {}
+        for name, dependencies in optional_dependencies.items():
+            normalized[name] = self._validate_dependency_list(
+                dependencies, errors, warnings, message_prefix=f"optional `{name}` dependencies"
+            )
+
+        self._optional_dependencies = normalized
+
+    def _validate_dependency_list(self, dependencies, errors, warnings, message_prefix="dependencies"):
+        # Slow import
+        from packaging.requirements import InvalidRequirement, Requirement
+
+        temp_errors = []
+        temp_warnings = []
+
+        normalized_dependencies = []
+        for i, dependency in enumerate(dependencies, 1):
+            try:
+                requirement = Requirement(dependency)
+            except InvalidRequirement as e:
+                temp_errors.append(f"{message_prefix} #{i}: {e}")
+                self.fixable = False
+            else:
+                requirement.name = normalize_project_name(requirement.name)
+
+                # All TOML writers use double quotes, so avoid escaping
+                normalized_dependency = str(requirement).lower().replace('"', "'")
+
+                if dependency != normalized_dependency:
+                    temp_errors.append(f"{message_prefix} #{i} should be: {normalized_dependency}")
+
+                normalized_dependencies.append(normalized_dependency)
+
+        errors.extend(temp_errors)
+        warnings.extend(temp_warnings)
+        normalized_dependencies.sort()
+
+        # No need to check sorting if there were errors
+        if temp_errors:
+            return normalized_dependencies
+        elif dependencies != normalized_dependencies:
+            errors.append(f"{message_prefix} are not sorted")
+
+        return normalized_dependencies
+
+
 def get_validators():
     # allow choices one day
-    return {"specs": SpecValidator(), "naming": NameValidator()}
+    return {"specs": SpecValidator(), "naming": NameValidator(), "dependencies": DependencyValidator()}

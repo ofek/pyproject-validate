@@ -17,6 +17,7 @@ Validate and format `pyproject.toml` files.
 - [Validators](#validators)
   - [Specs](#specs)
   - [Naming](#naming)
+  - [Dependencies](#dependencies)
 - [License](#license)
 
 ## Installation
@@ -27,16 +28,14 @@ pip install pyproject-validate
 
 ## Usage
 
-Validate:
-
 ```console
-pyproject-validate
-```
+usage: pyproject-validate [-h] [--fix] [--config CONFIG] [--version]
 
-Fix:
-
-```console
-pyproject-validate --fix
+optional arguments:
+  -h, --help       show this help message and exit
+  --fix            whether to apply fixes for any encountered errors
+  --config CONFIG  explicit path to the project config file
+  --version        show program's version number and exit
 ```
 
 ## Validators
@@ -60,6 +59,31 @@ After:
 
 ```toml
 name = "foo-bar"
+```
+
+### Dependencies
+
+Ensure normalized and sorted [PEP 508](https://www.python.org/dev/peps/pep-0508/) dependency definitions.
+
+Before:
+
+```toml
+[project]
+dependencies = [
+    "python-dateutil",
+    "bAr.Baz[TLS]   >=1.2RC5",
+    'Foo;python_version<"3.8"',
+]
+```
+
+After:
+
+```toml
+dependencies = [
+    "bar-baz[tls]>=1.2rc5",
+    "foo; python_version < '3.8'",
+    "python-dateutil",
+]
 ```
 
 ## License

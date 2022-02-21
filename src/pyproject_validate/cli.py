@@ -8,8 +8,8 @@ from .validators import get_validators
 
 def main():
     parser = argparse.ArgumentParser(prog="pyproject-validate", allow_abbrev=False)
-    parser.add_argument("--fix", action="store_true")
-    parser.add_argument("--config")
+    parser.add_argument("--fix", action="store_true", help="whether to apply fixes for any encountered errors")
+    parser.add_argument("--config", help="explicit path to the project config file")
     if sys.version_info[:2] >= (3, 8):
         parser.add_argument("--version", action="version", version=f"%(prog)s {version}")
     args = parser.parse_args()
